@@ -1,63 +1,79 @@
 import os
 import requests
-from bs4 import BeautifulSoup
 
 TOKEN = os.environ['BOT_TOKEN']
 CHAT_ID = os.environ['CHAT_ID']
 
 KEYWORDS = [
     "televue",
-    "tele vue",
     "pentax xw",
     "pentax xl",
     "clavé",
-    "clave",
     "takahashi",
-    "vixen lv",
-    "meade series 4000",
-    "celestron ultima",
-    "oculare astronomico",
-    "ortoscopico",
+    "vixen",
     "skywatcher",
     "celestron",
-    "vixen",
-    "unitron",
-    "zeiss jena"
+    "zeiss",
+    "unitron"
 ]
 
-sent = []
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
+
+sent_items = []
 
 for keyword in KEYWORDS:
 
-    url = f"https://www.vinted.com/catalog?search_text={keyword}"
+    url = f"https://www.vinted.com/api/v2/catalog/items?search_text={keyword}"
 
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    try:
 
-    response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers)
 
-    soup = BeautifulSoup(response.text, "html.parser")
+        data = response.json()
 
-    text = soup.get_text().lower()
+        items = data.get("items", [])
 
-    if keyword.lower() in text:
+        for item in items[:3]:
 
-        message = f"🔭 Possibile annuncio trovato su Vinted:\n\n{keyword}\n\n{url}"
+            title = item.get("title", "No title")
 
-        if message not in sent:
+            price = item.get("price", "0")
+
+            item_url = item.get("url", "")
+
+            item_id = item.get("id")
+
+            if item_id in sent_items:
+                continue
+
+            message = f"""
+🔭 Nuovo annuncio Vinted
+
+{title}
+
+💰 {price} €
+
+🔗 https://www.vinted.com{item_url}
+"""
 
             telegram_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
-            data = {
-                "chat_id": CHAT_ID,
-                "text": message
-            }
+            requests.post(
+                telegram_url,
+                data={
+                    "chat_id": CHAT_ID,
+                    "text": message
+                }
+            )
 
-            requests.post(telegram_url, data=data)
+            sent_items.append(item_id)
 
-            sent.append(message)
+            print(f"Inviato: {title}")
 
-            print(f"Inviato alert per: {keyword}")
+    except Exception as e:
+
+        print(f"Errore keyword {keyword}: {e}")
 
 print("Controllo completato")
