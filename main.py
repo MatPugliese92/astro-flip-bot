@@ -4,16 +4,14 @@ import requests
 TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-message = "🚀 Astro Flip Bot online!"
-
 url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
-requests.post(
+response = requests.post(
     url,
     data={
         "chat_id": CHAT_ID,
-        "text": message
+        "text": "🚀 Test Astro Flip Bot"
     }
 )
 
-print("Messaggio inviato!")
+print(response.text)
