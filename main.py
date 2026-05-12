@@ -9,21 +9,19 @@ SEARCHES = [
     "telescopio",
     "cannocchiale",
     "oculare",
-    "astronomia",
-    "telescopio vintage",
-    "accessori telescopio"
+    "astronomia"
 ]
+
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
 
 GOOD_WORDS = [
     "japan",
-    "made in japan",
     "vintage",
     "orange",
     "fluorite",
     "ortho",
-    "orthoscopic",
-    "oculare",
-    "astronomia",
     "c5",
     "c8",
     "vixen",
@@ -31,22 +29,21 @@ GOOD_WORDS = [
     "takahashi",
     "televue",
     "pentax",
-    "clavé",
     "zeiss"
 ]
 
 BAD_WORDS = [
     "lego",
-    "pirati",
-    "bambini",
     "toy",
-    "giocattolo",
-    "playmobil"
+    "playmobil",
+    "pirati",
+    "bambini"
 ]
 
-headers = {
-    "User-Agent": "Mozilla/5.0"
-}
+with open("sent_items.txt", "r") as f:
+    sent_items = f.read().splitlines()
+
+new_sent_items = sent_items.copy()
 
 sent = 0
 
@@ -62,8 +59,6 @@ for search in SEARCHES:
 
         links = soup.find_all("a", href=True)
 
-        found = []
-
         for link in links:
 
             href = link["href"]
@@ -71,6 +66,11 @@ for search in SEARCHES:
             text = link.get_text().lower()
 
             if "/items/" not in href:
+                continue
+
+            full_link = "https://www.vinted.it" + href
+
+            if full_link in sent_items:
                 continue
 
             if any(bad in text for bad in BAD_WORDS):
@@ -83,33 +83,44 @@ for search in SEARCHES:
                 if good in text:
                     score += 1
 
-            if score < 1:
-                continue
+            if score >= 2:
+                level = "🔴 MOLTO interessante"
+            elif score == 1:
+                level = "🟡 Interessante"
+            else:
+                level = "🟢 Da controllare"
 
-            full = "https://www.vinted.it" + href
+            message = f"""
+{level}
 
-            if full not in found:
-                found.append(full)
+🔭 Ricerca: {search}
 
-        found = found[:5]
-
-        for item in found:
-
-            text = f"🔭 Possibile annuncio interessante\n\n{item}"
+🔗 {full_link}
+"""
 
             telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
             data = {
                 "chat_id": CHAT_ID,
-                "text": text
+                "text": message
             }
 
             requests.post(telegram_url, data=data)
 
+            new_sent_items.append(full_link)
+
             sent += 1
+
+            if sent >= 10:
+                break
 
     except Exception as e:
 
         print(f"Errore {search}: {e}")
 
-print(f"Inviati {sent} annunci")
+with open("sent_items.txt", "w") as f:
+
+    for item in new_sent_items:
+        f.write(item + "\n")
+
+print(f"Inviati {sent} nuovi annunci")
