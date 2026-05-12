@@ -65,4 +65,4 @@ for keyword, max_price in KEYWORDS.items():
                 text=message
             )
 
-            break
+            break 
