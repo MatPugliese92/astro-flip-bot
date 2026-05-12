@@ -5,17 +5,43 @@ from bs4 import BeautifulSoup
 BOT_TOKEN = os.environ['BOT_TOKEN']
 CHAT_ID = os.environ['CHAT_ID']
 
-keywords = [
-    "televue",
-    "pentax xw",
-    "pentax xl",
-    "clavé",
-    "takahashi",
+SEARCHES = [
+    "telescopio",
+    "cannocchiale",
+    "oculare",
+    "astronomia",
+    "telescopio vintage",
+    "accessori telescopio"
+]
+
+GOOD_WORDS = [
+    "japan",
+    "made in japan",
+    "vintage",
+    "orange",
+    "fluorite",
+    "ortho",
+    "orthoscopic",
+    "oculare",
+    "astronomia",
+    "c5",
+    "c8",
     "vixen",
-    "skywatcher",
     "celestron",
-    "zeiss",
-    "unitron"
+    "takahashi",
+    "televue",
+    "pentax",
+    "clavé",
+    "zeiss"
+]
+
+BAD_WORDS = [
+    "lego",
+    "pirati",
+    "bambini",
+    "toy",
+    "giocattolo",
+    "playmobil"
 ]
 
 headers = {
@@ -24,10 +50,11 @@ headers = {
 
 sent = 0
 
-for keyword in keywords:
+for search in SEARCHES:
 
     try:
-        url = f"https://www.vinted.it/catalog?search_text={keyword}"
+
+        url = f"https://www.vinted.it/catalog?search_text={search}"
 
         r = requests.get(url, headers=headers)
 
@@ -38,19 +65,37 @@ for keyword in keywords:
         found = []
 
         for link in links:
+
             href = link["href"]
 
-            if "/items/" in href:
-                full = "https://www.vinted.it" + href
+            text = link.get_text().lower()
 
-                if full not in found:
-                    found.append(full)
+            if "/items/" not in href:
+                continue
 
-        found = found[:3]
+            if any(bad in text for bad in BAD_WORDS):
+                continue
+
+            score = 0
+
+            for good in GOOD_WORDS:
+
+                if good in text:
+                    score += 1
+
+            if score < 1:
+                continue
+
+            full = "https://www.vinted.it" + href
+
+            if full not in found:
+                found.append(full)
+
+        found = found[:5]
 
         for item in found:
 
-            text = f"🔭 {keyword}\n{item}"
+            text = f"🔭 Possibile annuncio interessante\n\n{item}"
 
             telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
@@ -64,6 +109,7 @@ for keyword in keywords:
             sent += 1
 
     except Exception as e:
-        print(f"Errore {keyword}: {e}")
+
+        print(f"Errore {search}: {e}")
 
 print(f"Inviati {sent} annunci")
