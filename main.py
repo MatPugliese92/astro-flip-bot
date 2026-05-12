@@ -1,10 +1,11 @@
-import os
 import requests
+import os
+from bs4 import BeautifulSoup
 
-TOKEN = os.environ['BOT_TOKEN']
+BOT_TOKEN = os.environ['BOT_TOKEN']
 CHAT_ID = os.environ['CHAT_ID']
 
-KEYWORDS = [
+keywords = [
     "televue",
     "pentax xw",
     "pentax xl",
@@ -21,59 +22,48 @@ headers = {
     "User-Agent": "Mozilla/5.0"
 }
 
-sent_items = []
+sent = 0
 
-for keyword in KEYWORDS:
-
-    url = f"https://www.vinted.com/api/v2/catalog/items?search_text={keyword}"
+for keyword in keywords:
 
     try:
+        url = f"https://www.vinted.it/catalog?search_text={keyword}"
 
-        response = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers)
 
-        data = response.json()
+        soup = BeautifulSoup(r.text, "html.parser")
 
-        items = data.get("items", [])
+        links = soup.find_all("a", href=True)
 
-        for item in items[:3]:
+        found = []
 
-            title = item.get("title", "No title")
+        for link in links:
+            href = link["href"]
 
-            price = item.get("price", "0")
+            if "/items/" in href:
+                full = "https://www.vinted.it" + href
 
-            item_url = item.get("url", "")
+                if full not in found:
+                    found.append(full)
 
-            item_id = item.get("id")
+        found = found[:3]
 
-            if item_id in sent_items:
-                continue
+        for item in found:
 
-            message = f"""
-🔭 Nuovo annuncio Vinted
+            text = f"🔭 {keyword}\n{item}"
 
-{title}
+            telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-💰 {price} €
+            data = {
+                "chat_id": CHAT_ID,
+                "text": text
+            }
 
-🔗 https://www.vinted.com{item_url}
-"""
+            requests.post(telegram_url, data=data)
 
-            telegram_url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-
-            requests.post(
-                telegram_url,
-                data={
-                    "chat_id": CHAT_ID,
-                    "text": message
-                }
-            )
-
-            sent_items.append(item_id)
-
-            print(f"Inviato: {title}")
+            sent += 1
 
     except Exception as e:
+        print(f"Errore {keyword}: {e}")
 
-        print(f"Errore keyword {keyword}: {e}")
-
-print("Controllo completato")
+print(f"Inviati {sent} annunci")
