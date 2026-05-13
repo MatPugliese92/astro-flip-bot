@@ -39,6 +39,8 @@ BAD_SIGNALS = [
     "mobile",
     "ingranditore",
     "monocolo",
+    "monocular",
+    "bak4",
     "libro"
 ]
 
@@ -77,9 +79,18 @@ for marketplace_name, marketplace_url in MARKETPLACES:
 
                 href = link["href"]
 
-                text = link.get_text().lower()
+                title = ""
 
-                if any(bad in text for bad in BAD_SIGNALS):
+                if link.get("title"):
+                    title = link.get("title").lower()
+
+                elif link.get_text():
+                    title = link.get_text().lower()
+
+                if len(title) < 3:
+                    continue
+
+                if any(bad in title for bad in BAD_SIGNALS):
                     continue
 
                 if marketplace_name == "Vinted":
@@ -110,6 +121,9 @@ for marketplace_name, marketplace_url in MARKETPLACES:
 🔭 Nuovo annuncio discovery
 
 🌍 Marketplace: {marketplace_name}
+
+📝 Titolo:
+{title[:120]}
 
 🔎 Ricerca: {search}
 
