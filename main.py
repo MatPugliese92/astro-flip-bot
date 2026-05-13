@@ -14,29 +14,6 @@ SEARCHES = [
     "telescopio vintage"
 ]
 
-GOOD_SIGNALS = [
-    "made in japan",
-    "japan",
-    "vintage",
-    "orange",
-    "fluorite",
-    "orthoscopic",
-    "ortho",
-    "circle t",
-    "circle v",
-    "multi coated",
-    "c5",
-    "c8",
-    "vixen",
-    "celestron",
-    "takahashi",
-    "televue",
-    "pentax",
-    "zeiss",
-    "unitron",
-    "royal astro"
-]
-
 BAD_SIGNALS = [
     "lego",
     "toy",
@@ -102,25 +79,8 @@ for marketplace_name, marketplace_url in MARKETPLACES:
 
                 text = link.get_text().lower()
 
-                if len(text) < 5:
-                    continue
-
                 if any(bad in text for bad in BAD_SIGNALS):
                     continue
-
-                score = 0
-
-                for signal in GOOD_SIGNALS:
-
-                    if signal in text:
-                        score += 1
-
-                if score >= 3:
-                    level = "🔴 MOLTO interessante"
-                elif score >= 1:
-                    level = "🟡 Interessante"
-                else:
-                    level = "🟢 Da controllare"
 
                 if marketplace_name == "Vinted":
 
@@ -147,7 +107,7 @@ for marketplace_name, marketplace_url in MARKETPLACES:
                     continue
 
                 message = f"""
-{level}
+🔭 Nuovo annuncio discovery
 
 🌍 Marketplace: {marketplace_name}
 
