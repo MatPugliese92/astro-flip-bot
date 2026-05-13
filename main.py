@@ -1,5 +1,6 @@
 import requests
 import os
+import re
 from bs4 import BeautifulSoup
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
@@ -7,14 +8,12 @@ CHAT_ID = os.environ['CHAT_ID']
 
 SEARCHES = [
     "made in japan",
-    "japan telescope",
     "vintage telescope",
     "vecchio telescopio",
     "telescopio vintage",
     "teleskop",
     "fernrohr",
     "japan optics",
-    "oculare japan",
     "circle t",
     "circle v",
     "vixen",
@@ -53,7 +52,11 @@ BAD_SIGNALS = [
     "bak4",
     "libro",
     "biblioteca",
-    "sapere"
+    "sapere",
+    "vestito",
+    "scarpe",
+    "felpa",
+    "jeans"
 ]
 
 headers = {
@@ -99,35 +102,40 @@ for marketplace_name, marketplace_url in MARKETPLACES:
                 elif link.get_text():
                     title = link.get_text().lower()
 
-                if len(title) < 3:
-                    continue
-
                 if any(bad in title for bad in BAD_SIGNALS):
                     continue
 
+                full_link = None
+
+                # VINTED
                 if marketplace_name == "Vinted":
 
-                    if "/items/" not in href:
-                        continue
+                    if re.search(r"/items/\d+", href):
 
-                    full_link = "https://www.vinted.it" + href
+                        full_link = "https://www.vinted.it" + href
 
+                # SUBITO
                 elif marketplace_name == "Subito":
 
-                    if "/annuncio/" not in href:
-                        continue
+                    if "/annuncio/" in href:
 
-                    full_link = href
+                        full_link = href
 
-                else:
+                # WALLAPOP
+                elif marketplace_name == "Wallapop":
 
-                    if "wallapop.com/item" not in href:
-                        continue
+                    if "/item/" in href:
 
-                    full_link = href
+                        full_link = href
+
+                if not full_link:
+                    continue
 
                 if full_link in seen:
                     continue
+
+                if len(title) < 3:
+                    title = "Titolo non disponibile"
 
                 message = f"""
 🔭 Nuovo annuncio discovery
