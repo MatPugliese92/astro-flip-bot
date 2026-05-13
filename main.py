@@ -6,12 +6,19 @@ BOT_TOKEN = os.environ['BOT_TOKEN']
 CHAT_ID = os.environ['CHAT_ID']
 
 SEARCHES = [
-    "telescopio",
+    "made in japan",
+    "japan telescope",
+    "vintage telescope",
+    "vecchio telescopio",
+    "telescopio vintage",
     "teleskop",
-    "cannocchiale",
-    "oculare",
-    "astronomia",
-    "telescopio vintage"
+    "fernrohr",
+    "japan optics",
+    "oculare japan",
+    "circle t",
+    "circle v",
+    "vixen",
+    "celestron"
 ]
 
 BAD_SIGNALS = [
@@ -22,6 +29,9 @@ BAD_SIGNALS = [
     "bambini",
     "kids",
     "clementoni",
+    "topolino",
+    "massaggiatore",
+    "massager",
     "20x",
     "30x",
     "40x",
@@ -41,7 +51,9 @@ BAD_SIGNALS = [
     "monocolo",
     "monocular",
     "bak4",
-    "libro"
+    "libro",
+    "biblioteca",
+    "sapere"
 ]
 
 headers = {
@@ -125,7 +137,8 @@ for marketplace_name, marketplace_url in MARKETPLACES:
 📝 Titolo:
 {title[:120]}
 
-🔎 Ricerca: {search}
+🔎 Ricerca:
+{search}
 
 🔗 {full_link}
 """
