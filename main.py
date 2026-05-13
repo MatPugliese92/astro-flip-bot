@@ -146,9 +146,6 @@ for marketplace_name, marketplace_url in MARKETPLACES:
                 if full_link in seen:
                     continue
 
-                if score == 0:
-                    continue
-
                 message = f"""
 {level}
 
